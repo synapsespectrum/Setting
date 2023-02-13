@@ -374,7 +374,7 @@ sudo apt install samba
     
     [titanV-4TB]
       comment = 4TB
-      path = /mnt/2tb/
+      path = /mnt/4tb/
       read only = no
       writeable = yes
       guest ok = yes
@@ -391,13 +391,36 @@ sudo apt install samba
     ```
 3. Adding user to access
     ```
-    sudo ufw allow samba
+    sudo smbpasswd -a username
     ```
 
 4. Connect from windows
     > Crt + R : Access to Run
     >
     > Type: `\\"ip"\andrew\ `
+
+### Change the permission folder/ files to limit access
+- Ubuntu server - create group specific access
+    ``` powershell
+    sudo addgroup groupname # Creating a group
+    sudo adduser username groupname # Adding a user into this group, meach user maximum joins 16 groups
+    ```
+- Allowing a group Read-Write Access to a directory
+    ``` powershell
+    chgrp groupA ./folderA # change folder group
+    chmod g+rwx  ./folderA # change the group's role 
+    # Or
+    chmod 770 volume_nyc1_01/
+    ```
+    ```
+    username@dsplab:/home/andrewpostgres$ id username
+    uid=1000(username) gid=1000(username) groups=1000(username),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),110(lxd),1002(foldersharing)
+    ```
+- Need to restart the `samba` service and `re-login` to apply the settings
+    ```
+    sudo service smbd restart
+    ```
+
 
 # Public SSH port to be accessible remote with secure
 ```
@@ -417,3 +440,137 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 sudo ufw allow from any to any port 2222 proto tcp
 sudo systemctl restart sshd.service
 ```
+
+## SSH via Key-pair
+- Generate the ssh-key in **Windows**, then copy to **Linux Server**:
+```powershell
+type $env:USERPROFILE\.ssh\id_rsa.pub | ssh 168.131.153.57 -p 2222 "cat >> .ssh/authorized_keys"
+```
+
+
+# Install and config the PostgreSQL database for Ubuntu server 22.04.1 LTS
+## 1. Installation
+
+```powershell
+sudo apt-get update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql.service
+```
+**Verify the installation** 
+
+```powershell
+(base) andrew@dsplab:~$ sudo lsof -i -P -n | grep LISTEN
+systemd-r  1024 systemd-resolve   14u  IPv4  37649      0t0  TCP 127.0.0.53:53 (LISTEN)
+smbd       4581            root   44u  IPv6  44756      0t0  TCP *:445 (LISTEN)
+smbd       4581            root   45u  IPv6  44757      0t0  TCP *:139 (LISTEN)
+smbd       4581            root   46u  IPv4  44758      0t0  TCP *:445 (LISTEN)
+smbd       4581            root   47u  IPv4  44759      0t0  TCP *:139 (LISTEN)
+sshd       4682            root    3u  IPv4  58406      0t0  TCP *:2222 (LISTEN)
+sshd       4682            root    4u  IPv6  58408      0t0  TCP *:2222 (LISTEN)
+postgres  11830        postgres    5u  IPv4 113537      0t0  TCP 127.0.0.1:5432 (LISTEN)
+```
+
+```powershell
+andrewpostgres@dsplab:~$ psql -V
+psql (PostgreSQL) 14.6 (Ubuntu 14.6-0ubuntu0.22.04.1)
+
+andrewpostgres@dsplab:~$ psql 
+psql (14.6 (Ubuntu 14.6-0ubuntu0.22.04.1))
+Type "help" for help.
+
+andrewpostgres=# \l
+                                       List of databases
+      Name      |     Owner      | Encoding |   Collate   |    Ctype    |   Access privileges   
+----------------+----------------+----------+-------------+-------------+-----------------------
+ andrewpostgres | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ postgres       | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0      | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+                |                |          |             |             | postgres=CTc/postgres
+ template1      | postgres       | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+                |                |          |             |             | postgres=CTc/postgres
+ testdb         | andrewpostgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+(5 rows)
+
+andrewpostgres=# \q
+
+```
+## 2. Configuration
+### 2.1. Move a PostgreSQL Data Directory to a New Location
+**Target direction:** *`/mnt/2tb/volume_nyc1_01`* (external partition)
+
+:warning: ***Notice: Must change the folder permission*** [[reference](#change-the-permission-folder-files-to-limit-access)]
+
+-  Moving the PostgreSQL Data Directory
+    
+    ```powershell
+    andrewpostgres@dsplab:~$ psql 
+    psql (14.6 (Ubuntu 14.6-0ubuntu0.22.04.1))
+    Type "help" for help.
+    
+    andrewpostgres=# \conninfo
+    You are connected to database "andrewpostgres" as user "andrewpostgres" via socket in "/var/run/postgresql" at port "5432".
+    andrewpostgres=# SHOW data_directory;
+           data_directory        
+    -----------------------------
+     /var/lib/postgresql/14/main
+    (1 row)
+    ```
+    ``` powershell
+    sudo systemctl stop postgresql
+    sudo rsync -av /var/lib/postgresql /mnt/2tb/volume_nyc1_01
+    # Rsync (remote sync) là công cụ đồng bộ file, thư mục của Linux
+    # Giả sử trên máy chúng ta có thư mục /var/lib/postgresql/ trong nó chứa nhiều file, thư mục con. Giờ muốn đồng bộ toàn bộ nội dung thư mục dir1 vào một thư mục ở vị trí khác là /mnt/2tb/volume_nyc1_01 (2 thư mục này cùng nằm trên một hệ thống - 1 máy), thì thực hiện lệnh trên
+    # Tham số -a (Archive) cho biết sẽ đồng bộ tất cả các file, thư mục con trong /var/lib/postgresql
+    sudo adduser postgres foldersharing # cho chắn ăn không bị lỗi truy cập
+    ```
+- Pointing to the New Data Location
+>By default, the data_directory is set to `/var/lib/postgresql/14/main` in the `/etc/postgresql/14/main/postgresql.conf` file. Edit this file to reflect the new data directory:
+    
+    
+``` powershell
+sudo nano /etc/postgresql/14/main/postgresql.conf
+. . .
+data_directory = '/mnt/2tb/volume_nyc1_01/postgresql/14/main'
+. . .
+```
+- Restarting `PostgreSQL`:
+    ``` powershell
+    sudo systemctl status postgresql
+    (base) andrew@dsplab:$ sudo -u andrewpostgres psql
+    psql (14.6 (Ubuntu 14.6-0ubuntu0.22.04.1))
+    Type "help" for help.
+    
+    andrewpostgres=# SHOW data_directory;
+                   data_directory               
+    --------------------------------------------
+     /mnt/2tb/volume_nyc1_01/postgresql/14/main
+    (1 row)
+    ```
+
+## 2.2. Secure TCP/IP Connections with SSH Tunnels
+### Configure to be accessible
+- Configuring `pg_hba.conf`
+    ```
+    sudo nano /etc/postgresql/13/main/pg_hba.conf 
+    ...
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    local   all             all                                     md5
+    host    all             all             127.0.0.1/32            md5
+    ...
+    ```
+- Restart Service: `sudo systemctl restart postgresql`
+- Test service: `psql -U andrewpostgres`
+(if the result like below is fail)
+    ```
+    (base) andrew@dsplab:/home/andrewpostgres$ psql -U andrewpostgres
+    could not change directory to "/home/andrewpostgres": Permission denied
+    psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  Peer authentication failed for user "andrewpostgres"
+    ```
+### Establish the connection
+- Make sure that an SSH server is running properly on the same machine as the PostgreSQL server and that you can log in using ssh as some user
+    ![](images/NAT-port-server-to-local.png)
+- In order to connect to the database server using this tunnel, you connect to port `63333` on the local machine
+![](images/cmd-connect-to-postgres-via-ssh-tunnel.png)
+or using the **pgAdmin** application to connect to server
+![](images/pgAdmin4-connect-2-local-postgres-via-ssh-tunnel.png)
+
