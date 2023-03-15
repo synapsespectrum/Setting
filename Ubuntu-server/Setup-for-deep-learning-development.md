@@ -1,4 +1,30 @@
 
+# Contents:
+1. [Install Ubuntu OS](#install-ubuntu-os)
+2. [Configure static IP](#config-the-static-ip)
+3. [Increase size of Disk storage](#-incase-you-setup-by-defaul-storage-and-you-wanna-increase-size-of-disk)
+4. [Install CUDA and CuDNN](#install-cuda--cudnn)
+5. [Install Anaconda](#install-anaconda)
+6. [Mount the extend Drive](#auto-mount-drive)
+7. [Config Firewall](#config-firewall)
+8. [Share folders via Samba](#install-and-configure-samba)
+
+    8.1. [Configure the permission folder](#change-the-permission-folder-files-to-limit-access)
+9. [SSH configuration](#public-ssh-port-to-be-accessible-remote-with-secure)
+
+    9.1. [SSH via SSH-KEYS(No login required)](#ssh-via-key-pair)
+10. [Install PostgreSQL database](#install-and-config-the-postgresql-database-for-ubuntu-server-22041-lts)
+
+    10.1. [Installation](#1-installation)
+    
+    10.2. [Configuration](#2-configuration)
+        
+    *10.2.1.* [Change the Directory to storage dataset in server](#21-move-a-postgresql-data-directory-to-a-new-location)
+    
+    *10.2.2.* [Public the database via SSH tunnels](#22-secure-tcpip-connections-with-ssh-tunnels)
+   
+    
+    10.3. [PGAdmin 4](#23-pgadmin-4-to-manage-the-dataset)
 
 # Install Ubuntu OS
 - Download iso file from offical Ubuntu website
@@ -547,7 +573,7 @@ data_directory = '/mnt/2tb/volume_nyc1_01/postgresql/14/main'
     (1 row)
     ```
 
-## 2.2. Secure TCP/IP Connections with SSH Tunnels
+### 2.2. Secure TCP/IP Connections with SSH Tunnels
 ### Configure to be accessible
 - Configuring `pg_hba.conf`
     ```
@@ -574,3 +600,5 @@ data_directory = '/mnt/2tb/volume_nyc1_01/postgresql/14/main'
 or using the **pgAdmin** application to connect to server
 ![](images/pgAdmin4-connect-2-local-postgres-via-ssh-tunnel.png)
 
+## 2.3. PGAdmin 4 to manage the dataset
+![](images/psAdmin.png)
