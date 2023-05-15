@@ -472,6 +472,9 @@ sudo systemctl restart sshd.service
 ```powershell
 type $env:USERPROFILE\.ssh\id_rsa.pub | ssh 168.131.153.57 -p 2222 "cat >> .ssh/authorized_keys"
 ```
+> ##### Note: 
+> - `.ssh/authorized_keys` is required (cannot use the replaceable name)
+> - It's possible to add multi-ssh-key from clients into `.ssh/authorized_keys` file.
 
 
 # Install and config the PostgreSQL database for Ubuntu server 22.04.1 LTS
