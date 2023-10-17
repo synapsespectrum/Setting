@@ -25,6 +25,8 @@
    
     
     10.3. [PGAdmin 4](#23-pgadmin-4-to-manage-the-dataset)
+    
+    10.4. [Public Database (Not recommended)](#24-allow-remote-connections)
 
 # Install Ubuntu OS
 - Download iso file from offical Ubuntu website
@@ -603,5 +605,21 @@ data_directory = '/mnt/2tb/volume_nyc1_01/postgresql/14/main'
 or using the **pgAdmin** application to connect to server
 ![](images/pgAdmin4-connect-2-local-postgres-via-ssh-tunnel.png)
 
-## 2.3. PGAdmin 4 to manage the dataset
+### 2.3. PGAdmin 4 to manage the dataset
 ![](images/psAdmin.png)
+
+### 2.4. Allow Remote Connections 
+
+Note: (Not recommendation - easier get attacker)
+> sudo nano /etc/postgresql/14/main/postgresql.conf 
+
+    Change `postgresql.conf`
+    ```
+    #listen_addresses = 'localhost'
+    listen_addresses = '*'
+    ```
+   > sudo nano /etc/postgresql/14/main/pg_hba.conf 
+```# TYPE  DATABASE	USER	ADDRESS   	METHOD
+host    all     	all     0.0.0.0/0       md5
+host    all             all     :/0             md5```
+
