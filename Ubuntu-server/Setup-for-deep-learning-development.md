@@ -605,6 +605,42 @@ data_directory = '/mnt/2tb/volume_nyc1_01/postgresql/14/main'
 or using the **pgAdmin** application to connect to server
 ![](images/pgAdmin4-connect-2-local-postgres-via-ssh-tunnel.png)
 
+
+### 2.3. Database Manager
+#### - Connect to an existing database as the "gy" user:
+```
+psql -U gy -d existing_database
+```
+Note: By default, **PostgreSQL uses a default database named the same as the username**. So, if the user "gy" has been created without specifying a default database, PostgreSQL assumes that the default database for "gy" is "gy."
+
+
+```
+gydata=# \du
+                                   List of roles
+ Role name |                         Attributes                         | Member of 
+-----------+------------------------------------------------------------+-----------
+ gy        | Superuser                                                  | {}
+ postgres  | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
+
+gydata=# \l
+                                  List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+-----------+----------+----------+-------------+-------------+-----------------------
+ gydata    | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+(4 rows)
+
+```
+
+#### - Export csv file from database within splitting sub-file:
+```
+\COPY ( SELECT "electrical-meter-id", date, hour, "customer-id", "amount-of-consumption" FROM public."Gyeonggi-1-hour" ORDER BY "electrical-meter-id", date, hour) TO PROGRAM 'split --lines 300000 ' WITH (FORMAT CSV, HEADER);
+```
+
 ### 2.3. PGAdmin 4 to manage the dataset
 ![](images/psAdmin.png)
 
