@@ -44,6 +44,9 @@
 - Update and upgrade: `sudo apt-get update && sudo apt-get upgrade`
 - Install SSH-server: `sudo apt-get install openssh-server`
 - Install nano: `sudo apt-get install nano`
+- Install pip: `sudo apt install python3-pip`
+- Install `jtop`: `sudo pip3 install jetson-stats`
+- 
 
 
 ## Headless Servers
@@ -152,7 +155,80 @@ gvncviewer 192.168.1.23 # replace this IP to Jetson's IP
 
 Check detail here: [developer.nvidia.com](https://developer.nvidia.com/embedded/learn/tutorials/vnc-setup)
 
+## Setup AI environment 
+### 1. Setup CUDA Environment
+- Check CUDA version, "command not found" is shown, and you need to configure the following environment:  `nvcc -V`
+ ```
+ Note: the command "nvcc" we used here can not view the version. You can enter the /usr/local/ directory to see if there is a CUDA directory.
+If not, refer to the SDK (including CUDA) installation, and then configure the environment after the installation is complete.
+```
+- Setup environment variables.
+```shell
+sudo vim .bashrc
+Add the following at the end of the file:
+export LD_LIBRARY_PATH=/usr/local/cuda/lib
+export PATH=$PATH:/usr/local/cuda/bin
+```
 
+- Update the environment variables: `source .bashrc`
+- View the CUDA version again: `nvcc -V`
+```
+Copyright (c) 2005-2022 NVIDIA Corporation
+Built on Sun_Oct_23_22:16:07_PDT_2022
+Cuda compilation tools, release 11.4, V11.4.315
+Build cuda_11.4.r11.4/compiler.31964100_0
+```
+### 2. PyTorch on Jetson Platform
+- Install system packages required by PyTorch:
+```shell
+sudo apt-get -y install autoconf bc build-essential g++-8 gcc-8 clang-8 lld-8 gettext-base gfortran-8 iputils-ping libbz2-dev libc++-dev libcgal-dev libffi-dev libfreetype6-dev libhdf5-dev libjpeg-dev liblzma-dev libncurses5-dev libncursesw5-dev libpng-dev libreadline-dev libssl-dev libsqlite3-dev libxml2-dev libxslt-dev locales moreutils openssl python-openssl rsync scons python3-pip libopenblas-dev;
+```
+
+Next, install PyTorch with the following steps:
+
+- Export with the following command:
+
+
+
+```shell
+export TORCH_INSTALL=https://developer.download.nvidia.cn/compute/redist/jp/v511/pytorch/torch-2.0.0+nv23.05-cp38-cp38-linux_aarch64.whl
+```
+- Install PyTorch for super User:
+
+
+```shell
+sudo python3 -m pip install aiohttp numpy=='1.19.4' scipy=='1.5.3' export "LD_LIBRARY_PATH=/usr/lib/llvm-8/lib:$LD_LIBRARY_PATH"; python3 -m pip install --upgrade protobuf; sudo python3 -m pip install --no-cache $TORCH_INSTALL
+```
+
+- Install Torch for User's environment:
+
+```shell
+wget https://nvidia.box.com/shared/static/i8pukc49h3lhak4kkn67tg9j4goqm0m7.whl -o torch-2.0.0-cp38-cp38m-linux_aarch64.whl
+```
+
+```shell
+sudo pip3 install i8pukc49h3lhak4kkn67tg9j4goqm0m7.whl
+```
+
+- Install Torchvision
+
+```shell
+git clone --branch v0.14.1 https://github.com/pytorch/vision torchvision
+```
+
+```shell
+cd torchvision
+export BUILD_VERSION=0.14.1
+python3 setup.py install
+```
+
+
+
+
+Check detail: [nvidia.jetson](https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform/index.html) 
+and [waveshare.com](https://www.waveshare.com/wiki/Jetson_Orin_Nano)
 
 # Refs:
-[developer.nvidia](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
+- [developer.nvidia](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
+- [waveshare.com](https://www.waveshare.com/wiki/Jetson_Orin_Nano)
+
