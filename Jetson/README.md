@@ -136,6 +136,34 @@ $ sudo reboot
 - [What is the best way to control the jetson Orin GUI remotely?](https://forums.developer.nvidia.com/t/what-is-the-best-way-to-control-the-jetson-orin-gui-remotely/239615/5)
 - [GUIDE: Headless Remote Access on Jeston Orin Nano (and other devices using linux nVidia drivers)](https://forums.developer.nvidia.com/t/guide-headless-remote-access-on-jeston-orin-nano-and-other-devices-using-linux-nvidia-drivers/267941)
 
+#### 1.3. Disable virtual display to use with physical Monitor
+-> Change content of file `xorg.conf`to be original: 
+```yaml
+# Copyright (c) 2011-2013 NVIDIA CORPORATION.  All Rights Reserved.
+
+#
+# This is the minimal configuration necessary to use the Tegra driver.
+# Please refer to the xorg.conf man page for more configuration
+# options provided by the X server, including display-related options
+# provided by RandR 1.2 and higher.
+
+# Disable extensions not useful on Tegra.
+Section "Module"
+    Disable     "dri"
+    SubSection  "extmod"
+        Option  "omit xfree86-dga"
+    EndSubSection
+EndSection
+
+Section "Device"
+    Identifier  "Tegra0"
+    Driver      "nvidia"
+# Allow X server to be started even if no display devices are connected.
+    Option      "AllowEmptyInitialConfiguration" "true"
+EndSection
+```
+
+
 
 ### 2. On LINUX Client to access Jetson remotely via VNC service
 ***Note: You’ll need to know the IP address of your Jetson developer kit to connect from another computer***
