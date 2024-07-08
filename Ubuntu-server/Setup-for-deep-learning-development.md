@@ -28,6 +28,8 @@
     
     10.4. [Public Database (Not recommended)](#24-allow-remote-connections)
 
+11. [MongoDB Community Edition database](#install-and-config-the-mongodb-community-edition-on-ubuntu)
+
 # Install Ubuntu OS
 - Download iso file from offical Ubuntu website
 - Using Rufus (or other apps) to burn the iso into USB
@@ -657,5 +659,46 @@ Note: (Not recommendation - easier get attacker)
    > sudo nano /etc/postgresql/14/main/pg_hba.conf 
 ```# TYPE  DATABASE	USER	ADDRESS   	METHOD
 host    all     	all     0.0.0.0/0       md5
-host    all             all     :/0             md5```
+host    all             all     :/0             md5
+```
+
+
+# Install and config the MongoDB Community Edition on Ubuntu
+## 1. Installation
+
+Reference [offical website](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/)
+
+This installation tested on Ubuntu 18.04 with MongDB version 4
+```powershell
+sudo apt-get install gnupg curl
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt update
+sudo apt install mongodb-org
+```
+Note: 
+- To undo the actions are performed, you can follow these steps:
+```powershell
+sudo rm /usr/share/keyrings/mongodb-server-7.0.gpg
+sudo rm /etc/apt/sources.list.d/mongodb-org-7.0.list
+```
+`sudo apt update` is update the APT, and 
+`sudo apt-key list` is listing all the APT
+
+
+**Verify the installation** 
+```powershell
+(base) andrew@dspserver:~$ sudo systemctl start mongod.service
+(base) andrew@dspserver:~$ sudo systemctl status mongod
+● mongod.service - MongoDB Database Server
+   Loaded: loaded (/lib/systemd/system/mongod.service; disabled; vendor preset: enabled)
+   Active: active (running) since Tue 2024-01-30 11:15:03 KST; 3s ago
+     Docs: https://docs.mongodb.org/manual
+ Main PID: 18856 (mongod)
+   CGroup: /system.slice/mongod.service
+           └─18856 /usr/bin/mongod --config /etc/mongod.conf
+```
+After confirming that the service is running as expected, enable the MongoDB service to start up at boot:
+```powershell
+sudo systemctl enable mongod
+```
 
