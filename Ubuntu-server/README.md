@@ -30,6 +30,10 @@
 
 11. [MongoDB Community Edition database](#install-and-config-the-mongodb-community-edition-on-ubuntu)
 
+12. [LLM setting up](#LLM)
+
+    12.1. [Huggingface](#Huggingface)
+
 # Install Ubuntu OS
 - Download iso file from offical Ubuntu website
 - Using Rufus (or other apps) to burn the iso into USB
@@ -701,4 +705,15 @@ After confirming that the service is running as expected, enable the MongoDB ser
 ```powershell
 sudo systemctl enable mongod
 ```
+
+# LLM
+## 1. Huggingface
+### 1.1. Configuration
+- **Change the default `cache` folder. <br>**
+    Usually HF will download models or datasets to store in `~.cache/huggingface`, everything is ok til you realize your system is warning ***full of disk***. Generally settingup Deep Learning server which has HDD and SSD, and SSD is for running OS (within limited storage), then we need to consider to change the default HF cache directory. To archive it, in the `~.bashrc`, adding new directory
+    ```powershell
+    export HF_HOME="/data/.cache" 
+    ```
+    Execute `source .bashrc` to apply immediately.
+    
 
